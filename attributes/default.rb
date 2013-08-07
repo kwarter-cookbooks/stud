@@ -18,6 +18,7 @@
 #
 
 default["stud"]["lport"] = "443"
-default["stud"]["rport"] = "4443"
+default["stud"]["rport"] = "8443"
 default["stud"]["v4local"] = "127.0.0.1"
 default["stud"]["v6local"] = "::1"
+default["stud"]["dir"] = "/root"

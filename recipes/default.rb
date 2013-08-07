@@ -17,16 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe "apt"
-
-apt_repository "ndn" do
-	uri "https://debian.di.newdream.net"
-	distribution node['lsb']['codename']
-	components ['ndn']
-	key "http://debian.di.newdream.net/packages@debian.newdream.net.gpg.key"
-	action :add
-end
-
 package "stud" do
 	action [:install]
 end
@@ -37,18 +27,22 @@ service "stud" do
 	action [:start]
 end
 
-template "/etc/stud/stud.ipv4.conf"
-	source	"stud.ipv4.conf.erb"
+proxy = data_bag_item(node.chef_environment, 'proxy')
+
+file File.join(node['stud']['dir'], "stud.pem") do
+  content [proxy['ssl']['key'], proxy['ssl']['cert']].join("\n")
+  mode 0644
+end
+
+template "/etc/stud/stud.conf" do
+	source	"stud.conf.erb"
 	owner	"root"
 	group	"root"
 	mode	"0644"
-	notifies  :restart, service[stud]
+	variables(
+		:ssl_cert		=> File.join(node['stud']['dir'], 'stud.pem')
+	)
+    notifies :restart, 'service[stud]'
 end
 
-template "/etc/stud/stud.ipv6.conf"
-        source          "stud.ipv6.conf.erb"
-        owner           "root"
-        group           "root"
-        mode            "0644"
-        notifies        :restart, service[stud]
-end
+
